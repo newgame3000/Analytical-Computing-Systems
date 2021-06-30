@@ -1,0 +1,202 @@
+% размер шрифта: 14pt
+% и указываем размер страницы - у нас это A4 (a4paper)
+% подключаем макеты оформления extreport или extarticle, 
+% чтобы кегль выше 12pt отображался адекватно
+\documentclass[14pt, a4paper]{extarticle}
+
+%поля: 
+%слева: 2.5
+%справа: 1.5
+%сверху: 2.5
+%снизу: 2.5
+\usepackage[left=2.5cm, right=1.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+
+% установка междустрочного интервала
+% закомментировано, т.к. нас устраивает пока настройки по умолчанию
+% \linespread{1.3}
+
+% кодировка файла
+% не должно объявляться более одного раза
+% кодировку подключаем в первую очередь
+% иначе могут быть весьма неприятные непонятные ошибки
+\usepackage[utf8x]{inputenc}
+% шрифты
+\usepackage[T2A]{fontenc}
+% языки
+\usepackage[english,russian]{babel}
+
+% пакеты
+\usepackage{amsmath} % align
+\usepackage{amssymb}
+\usepackage[usenames]{color}
+
+% мета-данные. Т.е. данные, описывающие данные.
+% в текущем случае не выводятся никуда (не будут видны в pdf)
+\title{Лабораторная работа №2}
+\author{Выполнил: Воронов Кирилл, М8О-207Б-19}
+
+% подключение пакетов для ссылок и для SageTeX
+\usepackage{hyperref}
+\usepackage{sagetex}
+
+% размер отступа для первой строки абзаца
+\setlength{\sagetexindent}{10ex}
+
+% определяем короткий псевдоним для объявления секции с автоматической нумерацией
+\renewcommand{\thesection}{\number\numexpr\value{section}-1\relax}
+% для subsection, например, задаём формат записи заголовка "номер секции.номер подсекции-1"
+\renewcommand{\thesubsection}{\thesection.\number\numexpr\value{subsection}-1\relax}
+\renewcommand{\thesubsubsection}{\thesubsection.\number\numexpr\value{subsubsection}-1\relax}
+
+% установка начальных значений счетчиков секций и пр.
+\setcounter{secnumdepth}{1}
+% \setcounter{chapter}{1}  % этого счетчика нет в шаблоне 'article'
+\setcounter{section}{1}
+
+
+% открываем тег документа
+\begin{document}
+%Обложка
+% внутри файла все необходимые настройки. Вроде отключения нумерации страниц для титульного листа
+\include{"TemplateParts/TitlePage"}
+% Остальное содержимое
+\setcounter{page}{2} % начать нумерацию с номера 2
+\tableofcontents  % вставить автоматически генерируемое оглавление для файла
+\section{Приведение уравнения поверхности второго рода к каноническому виду}
+\textbf{Вариант 6}
+\newline
+$-2*y^2 + 4*y*z - 3*z^2 + 4*y + 4*z - 12$
+\newline
+\begin{sagesilent}
+A = matrix([
+    [0, 0, 0],
+    [0, -2, 2],
+    [0, 2, -3]
+])
+B = vector([0, 4, 4])
+a0 = -12
+\end{sagesilent}
+\newline
+\textbf{Матрица квадратичной формы}
+\newline
+$A = \sage{A}$
+\newline
+\newline
+\textbf{Коэффициенты линейной формы}
+\newline
+$B = \sage{B}$
+\newline
+$a_0 = \sage{a0}$
+\newline
+\newline
+\textbf{Характеристическое уравнение}
+\begin{sagesilent}
+var('l', latex_name = r"\lambda")
+equation_matrix = A - l * identity_matrix(3)
+det = equation_matrix.det()
+det = det.simplify_full()
+\end{sagesilent}
+\newline
+$\sage{det} = 0$
+\newline
+\newline
+\textbf{Собственные значения}
+\begin{sagesilent}
+lambdas = []
+for i in solve(det == 0, l):
+    lambdas.append(i.rhs())
+\end{sagesilent}
+\newline
+$\lambda_{0} = \sage{lambdas[0].n(digits = 5)}$
+\newline
+$\lambda_{1} = \sage{lambdas[1].n(digits = 5)}$
+\newline
+$\lambda_{2} = \sage{lambdas[2].n(digits = 5)}$
+\newline
+\newline
+\textbf{Собственные векторы}
+\newline
+\begin{sagesilent}
+vectors = []
+for i in range(len(lambdas)):
+    vectors.append(vector(RR, *(A-lambdas[i] * identity_matrix(3)).right_kernel().basis()))
+\end{sagesilent}
+$s_{0} = \sage{vectors[0].n(digits = 5)}$
+\newline
+$s_{1} = \sage{vectors[1].n(digits = 5)}$
+\newline
+$s_{2} = \sage{vectors[2].n(digits = 5)}$
+\newline
+\newline
+\textbf{Матрица перехода из нормированых собственных векторов}
+\newline
+\begin{sagesilent}
+S = list()
+for i in range(len(vectors)):
+    S.append(vectors[i] / sqrt(vectors[i] * vectors[i]))
+S = matrix(S).T
+\end{sagesilent}
+$S = \sage{S.n(digits=5)}$
+\newline
+\newline
+\textbf{Диагональная матрица}
+\newline
+\begin{sagesilent}
+D = S.T * A * S
+\end{sagesilent}
+$S^T * A * S = \sage{D.n(digits = 5)}$
+\newline
+\newline
+\textbf{Преобразование коэффициентов линейной формы}
+\newline
+\begin{sagesilent}
+B1 = S.T * B
+\end{sagesilent}
+$B' = S^T * B = \sage{B1.n(digits=5)}$
+\newline
+\newline
+\newline
+\newline
+\textbf{Почти приведенное уравнение}
+\newline
+\begin{sagesilent}
+almost = a0
+var("x","y","z")
+bas = [x, y, z]
+for i in range(len(bas)):
+    almost += D[i][i] * bas[i] ^ 2 + B1[i] * bas[i]
+\end{sagesilent}
+$\sage{almost == 0}$
+\newline
+\newline
+\textbf{Приведенное уравнение}
+\newline
+\begin{sagesilent}
+res = 0
+a1 = a0
+for i in range(len(bas)):
+    if D[i][i] != 0:
+        res += D[i][i] * (bas[i] + (B1[i]/2) / D[i][i])^2
+        a1 -= D[i][i] * ((B1[i]/2) / D[i][i])^2
+    else:
+        res += B1[i] * bas[i]
+res = (res + a1) / a1
+\end{sagesilent}
+$\sage{res == 0}$
+\newline
+\newline
+\textbf{Исходный график}
+\newline
+\newline
+\begin{sagesilent}
+u(x, y, z) = -2*y^2 + 4*y*z - 3*z^2 + 4*y + 4*z - 12
+\end{sagesilent}
+\begin{center}
+  \sageplot[trim=100 100 100 100, clip, width=10cm][png]{implicit_plot3d(u(x,y,z), (x, -10, 10), (y, -10, 10), (z, -10, 10), plot_points = 100).rotateZ(0.5)}
+\end{center}
+\pagebreak 
+\textbf{График канонического уравнения}
+\begin{center}
+  \sageplot[trim=100 100 100 100, clip, width=10cm][png]{implicit_plot3d(res, (x, -10, 10), (y, -10, 11), (z, -10, 10), plot_points = 100)}
+\end{center}
+\end{document}
